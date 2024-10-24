@@ -12,6 +12,7 @@ import (
 )
 
 type Hasher struct {
+	name   string
 	digest func() hash.Hash
 }
 
@@ -38,6 +39,7 @@ func NewOtp(secret string, digits int, name, issuer string, hasher *Hasher) (*OT
 
 	if hasher == nil {
 		hasher = &Hasher{
+			name:   "sha1",
 			digest: sha1.New,
 		}
 	}
@@ -83,8 +85,8 @@ func (otp *OTP) byteSecret() ([]byte, error) {
 	secret := otp.secret
 	missingPadding := len(secret) % 8
 	if missingPadding != 0 {
-		secret = strings.Repeat("=", missingPadding)
+		secret += strings.Repeat("=", (8 - missingPadding))
 	}
 
-	return base32.StdEncoding.DecodeString(secret)
+	return base32.StdEncoding.DecodeString(strings.ToUpper(secret))
 }
