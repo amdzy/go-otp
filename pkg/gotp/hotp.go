@@ -31,6 +31,6 @@ func (hotp *HOTP) Verify(otp string, count int64) (bool, error) {
 	return stringsEqual(generatedOtp, otp), nil
 }
 
-func (hotp *HOTP) ProvisionUri(name, issuer string) string {
-	return BuildUri(hotp.secret, name, issuer, hotp.hasher.name, &hotp.digits, nil, &hotp.InitialCount)
+func (hotp *HOTP) ProvisionUri(name, issuer, image string) string {
+	return BuildUri(hotp.secret, name, issuer, hotp.hasher.name, image, &hotp.digits, nil, &hotp.InitialCount)
 }
