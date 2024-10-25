@@ -31,7 +31,7 @@ func stringsEqual(s1, s2 string) bool {
 	return subtle.ConstantTimeCompare([]byte(s1), []byte(s2)) == 1
 }
 
-func BuildUri(secret, name, issuer, algorithm string, digits, period, initialCount *int) string {
+func BuildUri(secret, name, issuer, algorithm, image string, digits, period, initialCount *int) string {
 	q := url.Values{}
 
 	otpType := "totp"
@@ -42,7 +42,7 @@ func BuildUri(secret, name, issuer, algorithm string, digits, period, initialCou
 	label := url.PathEscape(name)
 	if issuer != "" {
 		label = issuer + ":" + label
-		q.Add("issuer", url.QueryEscape(issuer))
+		q.Add("issuer", issuer)
 	}
 
 	if initialCount != nil {
@@ -51,6 +51,13 @@ func BuildUri(secret, name, issuer, algorithm string, digits, period, initialCou
 
 	if algorithm != "" && algorithm != "sha1" {
 		q.Add("algorithm", strings.ToUpper(algorithm))
+	}
+
+	if image != "" {
+		_, err := url.Parse(image)
+		if err == nil {
+			q.Add("image", image)
+		}
 	}
 
 	if digits != nil && *digits != 6 {
@@ -70,7 +77,7 @@ func BuildUri(secret, name, issuer, algorithm string, digits, period, initialCou
 		RawQuery: q.Encode(),
 	}
 
-	return u.String()
+	return strings.Replace(u.String(), "+", "%20", -1)
 }
 
 type generator interface {
