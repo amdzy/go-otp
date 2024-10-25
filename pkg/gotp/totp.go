@@ -63,6 +63,10 @@ func (totp *TOTP) VerifyWithWindow(otp string, timestamp int64, window int) (boo
 	return false, nil
 }
 
+func (totp *TOTP) ProvisionUri(name, issuer string) string {
+	return BuildUri(totp.secret, name, issuer, totp.hasher.name, &totp.digits, &totp.Interval, nil)
+}
+
 func (totp *TOTP) timecode(timestamp int64) int64 {
 	return timestamp / int64(totp.Interval)
 }
