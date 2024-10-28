@@ -83,7 +83,7 @@ func BuildUri(secret, name, issuer, algorithm, image string, digits, period, ini
 type generator interface {
 	At(int64) (string, error)
 	Verify(string, int64) (bool, error)
-	ProvisionUri(string, string) string
+	ProvisionUri(string, string, string) string
 }
 
 func ParseUri(uri string) (generator, error) {
@@ -103,12 +103,12 @@ func ParseUri(uri string) (generator, error) {
 	counter := 0
 	hasher := Hasher{name: "sha1", digest: sha1.New}
 
-	accountInfo := strings.Split(u.Path, ":")
+	accountInfo := strings.Split(u.Path[1:], ":")
 	if len(accountInfo) == 1 {
 		name = accountInfo[0]
 	} else {
-		name = accountInfo[0]
-		issuer = accountInfo[1]
+		issuer = accountInfo[0]
+		name = accountInfo[1]
 	}
 
 	q := u.Query()
@@ -122,6 +122,10 @@ func ParseUri(uri string) (generator, error) {
 		n, err := strconv.Atoi(q.Get("digits"))
 		if err != nil {
 			return nil, err
+		}
+		validDigits := []int{6, 7, 8}
+		if !slices.Contains(validDigits, n) {
+			return nil, errors.New("digits may only be 6, 7, or 8")
 		}
 		digits = n
 	}
@@ -153,6 +157,10 @@ func ParseUri(uri string) (generator, error) {
 		if value == "SHA512" {
 			hasher = Hasher{name: "sha512", digest: sha512.New}
 		}
+	}
+
+	if q.Get("issuer") != "" && issuer != "" && q.Get("issuer") != issuer {
+		return nil, errors.New("if issuer is specified in both label and parameters, it should be equal")
 	}
 
 	if u.Host == "totp" {
